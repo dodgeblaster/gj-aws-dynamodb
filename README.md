@@ -15,7 +15,7 @@ const main = async main() => {
     await dynamodb.create({
         name: 'tableName', 
         PK: 'PK', // optional, defualts to PK if not defined
-        SK: 'SK'  // optional, defualts to PK if not defined
+        SK: 'SK'  // optional, defualts to PK if not defined. If set to false, only a hash key with PK will be made, range key will be omitted
     })
 
     /*

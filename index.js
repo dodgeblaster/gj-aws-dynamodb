@@ -6,19 +6,29 @@ const dynamodb = new AWS.DynamoDB({
 
 module.exports = {
     create: async ({ name, PK = 'PK', SK = 'SK' }) => {
+
+
+
         const params = {
             TableName: name,
-            AttributeDefinitions: [
-                {
-                    AttributeName: PK,
-                    AttributeType: "S"
-                },
-                {
-                    AttributeName: SK,
-                    AttributeType: "S"
-                }
-            ],
-            KeySchema: [
+            AttributeDefinitions: SK 
+                ? [
+                    {
+                        AttributeName: PK,
+                        AttributeType: "S"
+                    },
+                    {
+                        AttributeName: SK,
+                        AttributeType: "S"
+                    }
+                ] 
+                : [
+                    {
+                        AttributeName: PK,
+                        AttributeType: "S"
+                    }
+                ],
+            KeySchema: SK ? [
                 {
                     AttributeName: PK,
                     KeyType: "HASH"
@@ -27,6 +37,11 @@ module.exports = {
                     AttributeName: SK,
                     KeyType: "RANGE"
                 }
+            ] : [
+                {
+                    AttributeName: PK,
+                    KeyType: "HASH"
+                }
             ],
             BillingMode: 'PAY_PER_REQUEST',
             // StreamSpecification: {
@@ -34,6 +49,8 @@ module.exports = {
             //     StreamViewType: NEW_IMAGE | OLD_IMAGE | NEW_AND_OLD_IMAGES | KEYS_ONLY
             // }
         }
+
+        console.log('--- ', params)
 
         const res = await dynamodb.createTable(params).promise()
         return {
