@@ -2,7 +2,12 @@ const dynamodb = require('../index')
 const retry = require('async-retry')
 describe('dynamo', () => {
     test('can create read and remove table', async () => {
-        await dynamodb.create({name:'INT_TEST_TABLE'})
+        await dynamodb.create({
+          name:'INT_TEST_TABLE', 
+          PK: 'PK', 
+          SK: 'SK',
+          GSI1: 'GSI1'
+        })
 
         const res = await dynamodb.getTable('INT_TEST_TABLE')
         expect(res.name).toBe('INT_TEST_TABLE')

@@ -5,44 +5,73 @@ const dynamodb = new AWS.DynamoDB({
 })
 
 module.exports = {
-    create: async ({ name, PK = 'PK', SK = 'SK' }) => {
-
-
-
+    create: async ({ name, PK = 'PK', SK = 'SK', GSI1 = false, GSI2 = false }) => {
+        
+        let arr = [
+            PK, SK, GSI1, GSI2
+        ]
+        
         const params = {
             TableName: name,
-            AttributeDefinitions: SK 
-                ? [
-                    {
-                        AttributeName: PK,
-                        AttributeType: "S"
-                    },
-                    {
-                        AttributeName: SK,
-                        AttributeType: "S"
-                    }
-                ] 
-                : [
-                    {
-                        AttributeName: PK,
-                        AttributeType: "S"
-                    }
-                ],
-            KeySchema: SK ? [
-                {
-                    AttributeName: PK,
-                    KeyType: "HASH"
-                },
-                {
-                    AttributeName: SK,
-                    KeyType: "RANGE"
-                }
-            ] : [
-                {
-                    AttributeName: PK,
-                    KeyType: "HASH"
-                }
-            ],
+            AttributeDefinitions: arr
+                .filter(x => x)
+                .map(x => ({
+                    AttributeName: x,
+                    AttributeType: "S"
+                })),
+            
+            
+            // [
+            //         {
+            //             AttributeName: PK,
+            //             AttributeType: "S"
+            //         },
+            //         (SK ? {
+            //             AttributeName: SK,
+            //             AttributeType: "S"
+            //         } : false)
+            //         (SK && GSI1 ? {
+            //             AttributeName: GSI1,
+            //             AttributeType: "S"
+            //         } : false)
+            //         (SK && GSI2 ? {
+            //             AttributeName: GSI2,
+            //             AttributeType: "S"
+            //         } : false)
+            //     ],//.filter(x => x),
+            KeySchema: [PK, SK]
+                .filter(x => x)
+                .map(x => ({
+                    AttributeName: x,
+                    KeyType: x === 'PK' ? 'HASH' : 'RANGE'
+                })),
+            
+          
+            ...(GSI1 && SK && {
+                GlobalSecondaryIndexes: [GSI1, GSI2]
+                    .filter(x => x)
+                    .map(x => ({
+                        IndexName: x,
+                        KeySchema: [
+                            {
+                                AttributeName: x, 
+                                KeyType: 'HASH' 
+                            },
+                            {
+                                AttributeName: 'SK', 
+                                KeyType: 'RANGE'
+                            }
+                        ],
+                        Projection: { /* required */
+                            // NonKeyAttributes: [
+                            //   'STRING_VALUE',
+                            //   /* more items */
+                            // ],
+                            ProjectionType: 'ALL'
+                        }
+                       
+                    }))
+            }),
             BillingMode: 'PAY_PER_REQUEST',
             // StreamSpecification: {
             //     StreamEnabled: true || false, /* required */
@@ -51,6 +80,7 @@ module.exports = {
         }
 
         console.log('--- ', params)
+        console.log('--- ', params.GlobalSecondaryIndexes[0])
 
         const res = await dynamodb.createTable(params).promise()
         return {
