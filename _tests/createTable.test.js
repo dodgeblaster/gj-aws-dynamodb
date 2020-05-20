@@ -5,8 +5,8 @@ describe('dynamo', () => {
         await dynamodb.create({
           name:'INT_TEST_TABLE', 
           PK: 'PK', 
-          SK: 'SK',
-          GSI1: 'GSI1'
+          SK: false,
+          // GSI1: 'GSI1'
         })
 
         const res = await dynamodb.getTable('INT_TEST_TABLE')

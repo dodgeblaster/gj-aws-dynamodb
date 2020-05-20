@@ -79,9 +79,7 @@ module.exports = {
             // }
         }
 
-        console.log('--- ', params)
-        console.log('--- ', params.GlobalSecondaryIndexes[0])
-
+     
         const res = await dynamodb.createTable(params).promise()
         return {
             name: res.TableName,
